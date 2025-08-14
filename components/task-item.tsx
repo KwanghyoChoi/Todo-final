@@ -63,7 +63,7 @@ export const TaskItem = memo(function TaskItem({
         .from("todos")
         .update({
           text: editText,
-          date: editDate?.toISOString() || null,
+          date: editDate ? editDate.toLocaleDateString('en-CA') : null,
         })
         .eq("id", editingId)
 
@@ -71,7 +71,7 @@ export const TaskItem = memo(function TaskItem({
 
       // Update the local state
       todo.text = editText
-      todo.date = editDate?.toISOString() || null
+      todo.date = editDate ? editDate.toLocaleDateString('en-CA') : null
 
       setEditingId(null)
       setEditText("")

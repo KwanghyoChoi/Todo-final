@@ -223,7 +223,7 @@ export default function TodoApp() {
         .from("todos")
         .insert({
           text: newTodo,
-          date: selectedDate?.toISOString() || null,
+          date: selectedDate ? selectedDate.toLocaleDateString('en-CA') : null,
           completed: false,
           important: false,
         })
