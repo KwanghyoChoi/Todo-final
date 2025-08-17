@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { format, addDays, startOfToday, getDay } from "date-fns"
+import { format, addDays, startOfToday, getDay, startOfWeek } from "date-fns"
 import { ko } from "date-fns/locale"
 import { supabase, type TodoWithSubtasks, type Todo, type SubTask } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
@@ -380,9 +380,13 @@ export default function TodoApp() {
   const calendarDays = useMemo(() => {
     const days = []
     const today = startOfToday()
-
+    
+    // Find the start of the current week (Sunday)
+    const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 0 })
+    
+    // Generate 28 days starting from the start of the current week
     for (let i = 0; i < 28; i++) {
-      const date = addDays(today, i)
+      const date = addDays(startOfCurrentWeek, i)
       days.push(date)
     }
 
@@ -487,13 +491,15 @@ export default function TodoApp() {
 
           {/* Simple 4-week calendar */}
           <div className="mt-8 border-t pt-4 dark:border-gray-700">
-            <h3 className="text-sm font-medium mb-2">앞으로 4주간의 일정</h3>
+            <h3 className="text-sm font-medium mb-2">
+              {format(calendarDays[0], "M월 d일", { locale: ko })} ~ {format(calendarDays[27], "M월 d일", { locale: ko })} 일정
+            </h3>
 
             {/* Week headers */}
             <div className="grid grid-cols-7 gap-1 mb-2">
-              {["월", "화", "수", "목", "금", "토", "일"].map((day, index) => (
+              {["일", "월", "화", "수", "목", "금", "토"].map((day, index) => (
                 <div key={index} className="text-center">
-                  <div className={`text-xs font-medium ${index === 6 ? "text-red-500" : ""}`}>{day}</div>
+                  <div className={`text-xs font-medium ${index === 0 ? "text-red-500" : ""}`}>{day}</div>
                 </div>
               ))}
             </div>
