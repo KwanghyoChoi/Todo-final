@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, memo } from "react"
-import { Trash2, Edit2, Check, ChevronDown, ChevronRight, Star, Loader2, Plus } from "lucide-react"
+import { Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Star, Loader2, Plus, Calendar as CalendarIcon } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
 
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { supabase, type TodoWithSubtasks, type SubTask } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 
@@ -203,40 +203,45 @@ export const TaskItem = memo(function TaskItem({
     <div className="border rounded-lg hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center space-x-3 flex-1">
-          <Checkbox checked={todo.completed} onCheckedChange={() => onToggle(todo.id, todo.completed)} />
+          {editingId !== todo.id && (
+            <Checkbox checked={todo.completed} onCheckedChange={() => onToggle(todo.id, todo.completed)} />
+          )}
           <div className="flex-1">
             {editingId === todo.id ? (
-              <div className="space-y-2">
-                <Input
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  onKeyDown={handleEditKeyDown}
-                  autoFocus
-                  className={`${todo.completed ? "text-muted-foreground" : ""}`}
-                />
-                <div className="flex items-center space-x-2">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8">
-                        <Calendar className="h-3 w-3 mr-2" />
-                        {editDate ? format(editDate, "yyyy-MM-dd") : "날짜 선택"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar mode="single" selected={editDate} onSelect={setEditDate} initialFocus />
-                    </PopoverContent>
-                  </Popover>
+              <div className="flex items-center space-x-2">
+                <div className="flex-1">
+                  <Input
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onKeyDown={handleEditKeyDown}
+                    autoFocus
+                    className="w-full"
+                    placeholder="할일을 입력하세요..."
+                  />
                   {editDate && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                      onClick={() => setEditDate(undefined)}
-                    >
-                      날짜 삭제
-                    </Button>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {format(editDate, "yyyy년 MM월 dd일")}
+                    </div>
                   )}
                 </div>
+                <Popover modal={true}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-auto p-0 z-[9999]" 
+                    align="end" 
+                    side="bottom" 
+                    sideOffset={8} 
+                    avoidCollisions={true}
+                    collisionPadding={20}
+                    forceMount={false}
+                  >
+                    <CalendarComponent mode="single" selected={editDate} onSelect={setEditDate} initialFocus />
+                  </PopoverContent>
+                </Popover>
               </div>
             ) : (
               <div className={`${todo.completed ? "line-through text-muted-foreground" : ""}`}>
@@ -259,36 +264,61 @@ export const TaskItem = memo(function TaskItem({
           </div>
         </div>
         <div className="flex space-x-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onToggleImportant(todo.id, todo.important)}
-            className={`h-8 w-8 ${todo.important ? "text-yellow-500" : "text-gray-300"}`}
-          >
-            <Star className={`h-4 w-4 ${todo.important ? "fill-yellow-500" : ""}`} />
-          </Button>
-          {editingId === todo.id ? (
-            <Button variant="ghost" size="icon" onClick={saveEdit} className="h-8 w-8">
-              <Check className="h-4 w-4" />
-            </Button>
-          ) : (
+          {editingId !== todo.id && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={startEditing}
-              className="h-8 w-8 text-gray-300 hover:text-gray-700 dark:hover:text-gray-300"
+              onClick={() => onToggleImportant(todo.id, todo.important)}
+              className={`h-8 w-8 ${todo.important ? "text-yellow-500" : "text-gray-300"}`}
             >
-              <Edit2 className="h-4 w-4" />
+              <Star className={`h-4 w-4 ${todo.important ? "fill-yellow-500" : ""}`} />
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(todo.id)}
-            className="h-8 w-8 text-gray-300 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900 dark:hover:text-red-400"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {editingId === todo.id ? (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={saveEdit} 
+                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900"
+                title="저장"
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => {
+                  setEditingId(null)
+                  setEditText("")
+                  setEditDate(undefined)
+                }} 
+                className="h-8 w-8 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                title="취소"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={startEditing}
+                className="h-8 w-8 text-gray-300 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDelete(todo.id)}
+                className="h-8 w-8 text-gray-300 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900 dark:hover:text-red-400"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

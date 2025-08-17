@@ -83,7 +83,7 @@ export default function TodoApp() {
         // Fetch todos that are not completed
         const { data: todosData, error: todosError } = await supabase
           .from("todos")
-          .select("id, text, date, important, created_at")
+          .select("id, text, completed, date, important, created_at")
           .eq("completed", false)
           .order("created_at", { ascending: false })
 
@@ -454,8 +454,15 @@ export default function TodoApp() {
                   <Calendar className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <CalendarComponent mode="single" selected={selectedDate} onSelect={setSelectedDate} initialFocus />
+              <PopoverContent 
+                className="w-auto p-0 z-50" 
+                align="start" 
+                side="bottom" 
+                sideOffset={8} 
+                avoidCollisions={true}
+                collisionPadding={20}
+              >
+                <CalendarComponent mode="single" selected={selectedDate} onSelect={setSelectedDate} />
               </PopoverContent>
             </Popover>
             <Button onClick={addTodo} size="icon" disabled={submitting || connectionError}>
