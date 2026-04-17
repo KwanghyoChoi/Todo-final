@@ -237,7 +237,6 @@ export const TaskItem = memo(function TaskItem({
                     sideOffset={8} 
                     avoidCollisions={true}
                     collisionPadding={20}
-                    forceMount={false}
                   >
                     <CalendarComponent mode="single" selected={editDate} onSelect={setEditDate} initialFocus />
                   </PopoverContent>

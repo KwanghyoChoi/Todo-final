@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { ArrowLeft, CalendarIcon, X, Trash2, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns"
+import { type DateRange } from "react-day-picker"
 import { ko } from "date-fns/locale"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,15 +23,10 @@ export default function CompletedTasks() {
   const [allCompletedTasks, setAllCompletedTasks] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined
-    to: Date | undefined
-  }>({
-    from: undefined,
-    to: undefined,
-  })
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const { toast } = useToast()
+  const activeDateRange = dateRange ?? { from: undefined, to: undefined }
 
   // 데이터 새로고침 함수
   const refreshData = async () => {
@@ -147,7 +143,7 @@ export default function CompletedTasks() {
 
   // Apply date range filter - memoized to prevent recalculation on every render
   const filteredTasks = useMemo(() => {
-    if (!dateRange.from && !dateRange.to) {
+    if (!activeDateRange.from && !activeDateRange.to) {
       // If no date range is selected, show all tasks
       return allCompletedTasks
     }
@@ -158,18 +154,18 @@ export default function CompletedTasks() {
 
       const completedDate = parseISO(task.completed_at)
 
-      if (dateRange.from && dateRange.to) {
+      if (activeDateRange.from && activeDateRange.to) {
         // Both start and end dates are selected
         return isWithinInterval(completedDate, {
-          start: startOfDay(dateRange.from),
-          end: endOfDay(dateRange.to),
+          start: startOfDay(activeDateRange.from),
+          end: endOfDay(activeDateRange.to),
         })
-      } else if (dateRange.from) {
+      } else if (activeDateRange.from) {
         // Only start date is selected
-        return completedDate >= startOfDay(dateRange.from)
-      } else if (dateRange.to) {
+        return completedDate >= startOfDay(activeDateRange.from)
+      } else if (activeDateRange.to) {
         // Only end date is selected
-        return completedDate <= endOfDay(dateRange.to)
+        return completedDate <= endOfDay(activeDateRange.to)
       }
 
       return true
@@ -182,7 +178,7 @@ export default function CompletedTasks() {
   }, [filteredTasks])
 
   // Format date from ISO string
-  const formatDateFromISO = (dateString: string | null) => {
+  const formatDateFromISO = (dateString: string | null | undefined) => {
     if (!dateString) return null
     try {
       const date = parseISO(dateString)
@@ -236,15 +232,15 @@ export default function CompletedTasks() {
                     variant="outline"
                     className={cn(
                       "justify-start text-left font-normal",
-                      (dateRange.from || dateRange.to) && "text-blue-600 dark:text-blue-400",
+                      (activeDateRange.from || activeDateRange.to) && "text-blue-600 dark:text-blue-400",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange.from || dateRange.to ? (
+                    {activeDateRange.from || activeDateRange.to ? (
                       <span>
-                        {dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : "시작일"}
+                        {activeDateRange.from ? format(activeDateRange.from, "yyyy-MM-dd") : "시작일"}
                         {" ~ "}
-                        {dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : "종료일"}
+                        {activeDateRange.to ? format(activeDateRange.to, "yyyy-MM-dd") : "종료일"}
                       </span>
                     ) : (
                       <span>날짜 범위 선택</span>
@@ -255,7 +251,7 @@ export default function CompletedTasks() {
                   <Calendar
                     initialFocus
                     mode="range"
-                    defaultMonth={dateRange.from}
+                    defaultMonth={activeDateRange.from}
                     selected={dateRange}
                     onSelect={(range) => {
                       setDateRange(range || { from: undefined, to: undefined })
@@ -268,7 +264,7 @@ export default function CompletedTasks() {
                 </PopoverContent>
               </Popover>
 
-              {(dateRange.from || dateRange.to) && (
+              {(activeDateRange.from || activeDateRange.to) && (
                 <Button variant="ghost" size="icon" onClick={resetDateFilter} className="h-8 w-8" title="필터 초기화">
                   <X className="h-4 w-4" />
                 </Button>
@@ -288,7 +284,7 @@ export default function CompletedTasks() {
             <div className="space-y-4">
               {completedTasks.length === 0 ? (
                 <p className="text-center text-muted-foreground py-4">
-                  {dateRange.from || dateRange.to
+                  {activeDateRange.from || activeDateRange.to
                     ? "선택한 날짜 범위에 완료된 할일이 없습니다."
                     : "완료된 할일이 없습니다."}
                 </p>
