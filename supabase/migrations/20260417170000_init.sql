@@ -1,5 +1,5 @@
--- Legacy helper SQL for manual Supabase setup
--- Prefer supabase/migrations/20260417170000_init.sql for the canonical schema.
+-- Minimal single-user task schema for Todo-final
+-- Apply in Supabase SQL editor or via linked migration workflow.
 
 create extension if not exists pgcrypto;
 
@@ -51,20 +51,38 @@ for each row execute function public.set_updated_at();
 alter table public.todos enable row level security;
 alter table public.subtasks enable row level security;
 
-create policy if not exists "todos_select_all" on public.todos
-  for select using (true);
-create policy if not exists "todos_insert_all" on public.todos
-  for insert with check (true);
-create policy if not exists "todos_update_all" on public.todos
-  for update using (true) with check (true);
-create policy if not exists "todos_delete_all" on public.todos
-  for delete using (true);
+drop policy if exists "todos_select_all" on public.todos;
+drop policy if exists "todos_insert_all" on public.todos;
+drop policy if exists "todos_update_all" on public.todos;
+drop policy if exists "todos_delete_all" on public.todos;
+create policy "todos_select_all"
+  on public.todos for select
+  using (true);
+create policy "todos_insert_all"
+  on public.todos for insert
+  with check (true);
+create policy "todos_update_all"
+  on public.todos for update
+  using (true)
+  with check (true);
+create policy "todos_delete_all"
+  on public.todos for delete
+  using (true);
 
-create policy if not exists "subtasks_select_all" on public.subtasks
-  for select using (true);
-create policy if not exists "subtasks_insert_all" on public.subtasks
-  for insert with check (true);
-create policy if not exists "subtasks_update_all" on public.subtasks
-  for update using (true) with check (true);
-create policy if not exists "subtasks_delete_all" on public.subtasks
-  for delete using (true);
+drop policy if exists "subtasks_select_all" on public.subtasks;
+drop policy if exists "subtasks_insert_all" on public.subtasks;
+drop policy if exists "subtasks_update_all" on public.subtasks;
+drop policy if exists "subtasks_delete_all" on public.subtasks;
+create policy "subtasks_select_all"
+  on public.subtasks for select
+  using (true);
+create policy "subtasks_insert_all"
+  on public.subtasks for insert
+  with check (true);
+create policy "subtasks_update_all"
+  on public.subtasks for update
+  using (true)
+  with check (true);
+create policy "subtasks_delete_all"
+  on public.subtasks for delete
+  using (true);
